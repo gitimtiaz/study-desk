@@ -17,7 +17,7 @@ export default function HomePage() {
         className="text-sm mt-2 opacity-50 text-base-content text-center"
         style={{ fontFamily: 'var(--font-body)' }}
       >
-        Navbar Done.
+        Navbar & Footer Done.
       </p>
     </main>
   )

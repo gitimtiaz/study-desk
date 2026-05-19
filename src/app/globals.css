@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 @plugin "daisyui" {
   themes: light --default, dark;
 }
@@ -48,4 +47,24 @@ h2,
 h3,
 h4 {
   font-family: var(--font-heading);
+}
+
+/* Footer responsive grid */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 640px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
 }
