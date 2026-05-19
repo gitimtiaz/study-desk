@@ -1,5 +1,6 @@
 import { DM_Serif_Display, Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from '@/context/ThemeContext'
 import './globals.css'
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -26,20 +27,22 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={`${dmSerifDisplay.variable} ${inter.variable}`}>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3500,
-            style: {
-              background: '#1B1A17',
-              color: '#F0E3CA',
-              borderLeft: '4px solid #FF8303',
-              fontFamily: 'var(--font-inter)',
-              fontSize: '14px',
-            },
-          }}
-        />
-        {children}
+        <ThemeProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3500,
+              style: {
+                background: '#1B1A17',
+                color: '#F0E3CA',
+                borderLeft: '4px solid #FF8303',
+                fontFamily: 'var(--font-inter)',
+                fontSize: '14px',
+              },
+            }}
+          />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )
