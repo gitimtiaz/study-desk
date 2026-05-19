@@ -1,6 +1,7 @@
 import { DM_Serif_Display, Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from '@/context/ThemeContext'
+import Navbar from '@/components/navbar/Navbar'
 import './globals.css'
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -26,8 +27,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
-      <body className={`${dmSerifDisplay.variable} ${inter.variable}`}>
+      <body className={`${dmSerifDisplay.variable} ${inter.variable} overflow-x-hidden`}>
         <ThemeProvider>
+          <Navbar />
           <Toaster
             position="top-right"
             toastOptions={{
