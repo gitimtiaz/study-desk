@@ -1,12 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-
-// export const metadata = { title: 'StudyDesk – Login', }
-
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
@@ -15,6 +12,8 @@ export default function LoginPage() {
   const [errors, setErrors]     = useState({})
   const [loading, setLoading]   = useState(false)
   const router = useRouter()
+
+  useEffect(() => { document.title = 'StudyDesk – Login' }, [])
 
   const validate = () => {
     const e = {}
