@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import { useTheme } from '@/context/ThemeContext'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
@@ -20,6 +19,7 @@ const privateLinks = [
   { label: 'My Bookings', href: '/my-bookings' },
 ]
 
+// Mock user
 const MOCK_USER = {
   name: 'Imtiaz Ahmed',
   email: 'imtiaz@studydesk.com',
@@ -30,27 +30,11 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  // demo access.
-  const [user, setUser] = useState(null) 
+  const [user, setUser] = useState(null)
 
   const pathname = usePathname()
   const profileRef = useRef(null)
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
   const navLinks = user ? privateLinks : publicLinks
-
-  // Theme-aware colors
-  const navBg        = isDark ? '#1B1A17' : '#F0E3CA'
-  const navBorder    = isDark ? 'rgba(163,87,9,0.3)' : 'rgba(163,87,9,0.2)'
-  const linkColor    = isDark ? 'rgba(240,227,202,0.75)' : 'rgba(27,26,23,0.65)'
-  const linkHover    = isDark ? '#F0E3CA' : '#1B1A17'
-  const drawerBg     = isDark ? '#1B1A17' : '#F0E3CA'
-  const dropdownBg   = isDark ? '#222018' : '#ffffff'
-  const dropdownText = isDark ? 'rgba(240,227,202,0.8)' : 'rgba(27,26,23,0.8)'
-  const profileName  = isDark ? '#F0E3CA' : '#1B1A17'
-  const subtitleCol  = isDark ? 'rgba(240,227,202,0.32)' : 'rgba(27,26,23,0.32)'
-  const closeCol     = isDark ? 'rgba(240,227,202,0.45)' : 'rgba(27,26,23,0.45)'
-  const hamColor     = isDark ? '#F0E3CA' : '#1B1A17'
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10)
@@ -60,219 +44,80 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false)
-      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   return (
     <>
-      <nav
-        className="sticky top-0 z-50 transition-all duration-300"
-        style={{
-          backgroundColor: navBg,
-          borderBottom: `1px solid ${navBorder}`,
-          boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.12)' : 'none',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            padding: '0 1.5rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              height: '64px',
-            }}
-          >
+      <nav className={`sticky top-0 z-50 bg-cream dark:bg-dark border-b border-primary/20 dark:border-primary/30 transition-all duration-300 ${scrolled ? 'shadow-[0_4px_24px_rgba(0,0,0,0.12)]' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <Link
-              href="/"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',     
-                flexShrink: 0,
-                textDecoration: 'none',
-              }}
-            >
+            <Link href="/" className="flex items-center gap-4 shrink-0">
               <BookIcon />
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                <span style={{ color: '#FF8303', fontFamily: 'var(--font-heading)', fontSize: '1.2rem' }}>
-                  StudyDesk
-                </span>
-                <span
-                  className="hidden sm:block"
-                  style={{
-                    color: subtitleCol,
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '9px',
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                  }}
-                >
+              <div className="flex flex-col leading-tight">
+                <span className="text-xl font-heading text-primary">StudyDesk</span>
+                <span className="hidden sm:block text-xs tracking-widest uppercase text-dark/35 dark:text-cream/35">
                   Distraction-Free Focus
                 </span>
               </div>
             </Link>
 
             {/* Desktop nav links */}
-            <div
-              className="hidden md:flex"
-              style={{
-                alignItems: 'center',
-                gap: '32px',     
-              }}
-            >
+            <div className="hidden md:flex items-center gap-6">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href
                 return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    style={{
-                      position: 'relative',
-                      padding: '4px 0',
-                      fontSize: '14px',
-                      color: isActive ? '#FF8303' : linkColor,
-                      fontFamily: 'var(--font-body)',
-                      textDecoration: 'none',
-                      transition: 'color 0.2s',
-                      whiteSpace: 'nowrap',
-                    }}
-                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = linkHover }}
-                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = linkColor }}
+                  <Link key={link.href} href={link.href}
+                    className={`relative py-1 text-sm transition-colors duration-200 ${
+                      isActive
+                        ? 'text-primary'
+                        : 'text-dark/70 dark:text-cream/75 hover:text-dark dark:hover:text-cream'
+                    }`}
                   >
                     {link.label}
-                    {/* Active underline */}
                     <span
-                      style={{
-                        position: 'absolute',
-                        bottom: '-1px',
-                        left: 0,
-                        right: 0,
-                        height: '2px',
-                        borderRadius: '9999px',
-                        backgroundColor: '#FF8303',
-                        transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
-                        transformOrigin: 'left',
-                        transition: 'transform 0.3s ease',
-                      }}
+                      className="absolute -bottom-0.5 left-0 right-0 h-px rounded-full bg-primary transition-transform duration-300 origin-left"
+                      style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0)' }}
                     />
                   </Link>
                 )
               })}
             </div>
 
-            {/* Right section */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',       
-              }}
-            >
+            {/* Right side */}
+            <div className="flex items-center gap-4">
               <ThemeToggle />
 
-              {/* Public: Login + Register */}
+              {/* Public buttons */}
               {!user && (
-                <div
-                  className="hidden md:flex"
-                  style={{ alignItems: 'center', gap: '10px' }}
-                >
-                  <Link
-                    href="/login"
-                    style={{
-                      padding: '6px 18px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      border: '1.5px solid #FF8303',
-                      color: '#FF8303',
-                      fontFamily: 'var(--font-body)',
-                      textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FF8303'
-                      e.currentTarget.style.color = '#1B1A17'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = '#FF8303'
-                    }}
-                  >
+                <div className="hidden md:flex items-center gap-3">
+                  <Link href="/login"
+                    className="px-4 py-1.5 rounded-lg text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-dark transition-all duration-200">
                     Login
                   </Link>
-                  <Link
-                    href="/register"
-                    style={{
-                      padding: '6px 18px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      backgroundColor: '#FF8303',
-                      color: '#1B1A17',
-                      fontFamily: 'var(--font-body)',
-                      textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#A35709')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FF8303')}
-                  >
+                  <Link href="/register"
+                    className="px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-dark hover:bg-primary-dark transition-all duration-200">
                     Register
                   </Link>
                 </div>
               )}
 
-              {/* Private: Profile dropdown */}
+              {/* Profile dropdown */}
               {user && (
-                <div className="hidden md:block" style={{ position: 'relative' }} ref={profileRef}>
-                  <button
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      borderRadius: '9999px',
-                      padding: '4px 12px 4px 4px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.06)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <img
-                      src={user.image}
-                      alt={user.name}
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        outline: '2px solid #FF8303',
-                        outlineOffset: '1px',
-                      }}
-                    />
-                    <span style={{ fontSize: '14px', color: profileName, fontFamily: 'var(--font-body)' }}>
-                      {user.name.split(' ')[0]}
-                    </span>
-                    <ChevronIcon open={profileOpen} color={linkColor} />
+                <div className="hidden md:block relative" ref={profileRef}>
+                  <button onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-black/5 transition-colors">
+                    <img src={user.image} alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover outline outline-2 outline-primary outline-offset-1" />
+                    <span className="text-sm text-dark dark:text-cream">{user.name.split(' ')[0]}</span>
+                    <ChevronIcon open={profileOpen} />
                   </button>
 
                   <AnimatePresence>
@@ -282,48 +127,24 @@ export default function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        style={{
-                          position: 'absolute',
-                          right: 0,
-                          top: 'calc(100% + 8px)',
-                          width: '208px',
-                          borderRadius: '16px',
-                          overflow: 'hidden',
-                          zIndex: 50,
-                          backgroundColor: dropdownBg,
-                          border: `1px solid ${navBorder}`,
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                        }}
+                        className="absolute right-0 top-full mt-2 w-52 rounded-2xl overflow-hidden z-50 bg-white dark:bg-dark border border-primary/20 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
                       >
-                        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${navBorder}` }}>
-                          <p style={{ fontSize: '14px', fontWeight: 600, color: profileName, fontFamily: 'var(--font-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {user.name}
-                          </p>
-                          <p style={{ fontSize: '12px', marginTop: '2px', color: linkColor, fontFamily: 'var(--font-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {user.email}
-                          </p>
+                        <div className="px-4 py-3 border-b border-primary/20">
+                          <p className="text-sm font-semibold truncate text-dark dark:text-cream">{user.name}</p>
+                          <p className="text-xs mt-0.5 truncate text-dark/60 dark:text-cream/60">{user.email}</p>
                         </div>
                         {[
                           { label: 'My Listings', href: '/my-listings' },
                           { label: 'My Bookings', href: '/my-bookings' },
                         ].map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', fontSize: '14px', color: dropdownText, fontFamily: 'var(--font-body)', textDecoration: 'none', transition: 'background 0.15s' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          >
+                          <Link key={item.href} href={item.href}
+                            className="flex items-center px-4 py-2.5 text-sm text-dark/80 dark:text-cream/80 hover:bg-black/5 transition-colors">
                             {item.label}
                           </Link>
                         ))}
-                        <div style={{ borderTop: `1px solid ${navBorder}` }}>
-                          <button
-                            onClick={() => { setUser(null); setProfileOpen(false) }}
-                            style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 16px', fontSize: '14px', color: '#FF8303', fontFamily: 'var(--font-body)', background: 'none', border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          >
+                        <div className="border-t border-primary/20">
+                          <button onClick={() => { setUser(null); setProfileOpen(false) }}
+                            className="w-full flex items-center px-4 py-2.5 text-sm text-primary hover:bg-black/5 transition-colors">
                             Logout
                           </button>
                         </div>
@@ -333,51 +154,24 @@ export default function Navbar() {
                 </div>
               )}
 
-              {/* Mobile hamburger */}
-              <button
-                onClick={() => setMobileOpen(true)}
-                className="md:hidden"
-                aria-label="Open navigation menu"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  gap: '5px',
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '8px',
-                  padding: '6px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <span style={{ display: 'block', height: '2px', borderRadius: '9999px', backgroundColor: hamColor, width: '100%' }} />
-                <span style={{ display: 'block', height: '2px', borderRadius: '9999px', backgroundColor: '#FF8303', width: '75%' }} />
-                <span style={{ display: 'block', height: '2px', borderRadius: '9999px', backgroundColor: hamColor, width: '100%' }} />
+              {/* Hamburger */}
+              <button onClick={() => setMobileOpen(true)}
+                className="md:hidden flex flex-col justify-center gap-[5px] w-9 h-9 rounded-lg hover:bg-black/5 transition-colors p-2"
+                aria-label="Open navigation menu">
+                <span className="block h-0.5 w-full rounded-full bg-dark dark:bg-cream" />
+                <span className="block h-0.5 w-3/4 rounded-full bg-primary" />
+                <span className="block h-0.5 w-full rounded-full bg-dark dark:bg-cream" />
               </button>
             </div>
+
           </div>
         </div>
       </nav>
 
       {/* DEV ONLY */}
-      <div style={{ position: 'fixed', bottom: '16px', left: '16px', zIndex: 50 }}>
-        <button
-          onClick={() => setUser(user ? null : MOCK_USER)}
-          style={{
-            padding: '6px 12px',
-            borderRadius: '8px',
-            fontSize: '12px',
-            fontWeight: 500,
-            backgroundColor: '#A35709',
-            color: '#F0E3CA',
-            fontFamily: 'var(--font-body)',
-            opacity: 0.7,
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
+      <div className="fixed bottom-4 left-4 z-50">
+        <button onClick={() => setUser(user ? null : MOCK_USER)}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-dark text-cream opacity-70">
           DEV: {user ? 'Mock Logout' : 'Mock Login'}
         </button>
       </div>
@@ -386,71 +180,45 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div key="backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/50 md:hidden"
               onClick={() => setMobileOpen(false)}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 50,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}
             />
 
-            <motion.div
-              key="drawer"
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+            <motion.div key="drawer"
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-              style={{
-                position: 'fixed', right: 0, top: 0, bottom: 0,
-                width: '280px', zIndex: 51,
-                display: 'flex', flexDirection: 'column',
-                backgroundColor: drawerBg,
-                borderLeft: `1px solid ${navBorder}`,
-              }}
+              className="fixed right-0 top-0 bottom-0 w-72 z-50 flex flex-col bg-cream dark:bg-dark border-l border-primary/25 dark:border-primary/40 md:hidden"
             >
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${navBorder}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-primary/25 dark:border-primary/40">
+                <div className="flex items-center gap-4">
                   <BookIcon />
-                  <span style={{ color: '#FF8303', fontFamily: 'var(--font-heading)', fontSize: '1.2rem' }}>StudyDesk</span>
+                  <span className="text-xl font-heading text-primary">StudyDesk</span>
                 </div>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  aria-label="Close menu"
-                  style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: closeCol, fontSize: '14px' }}
-                >
+                <button onClick={() => setMobileOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors text-dark/50 dark:text-cream/50"
+                  aria-label="Close menu">
                   ✕
                 </button>
               </div>
 
               {/* Links */}
-              <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px', gap: '4px', flex: 1, overflowY: 'auto' }}>
+              <nav className="flex flex-col px-3 py-4 gap-1 flex-1 overflow-y-auto">
                 {navLinks.map((link, i) => {
                   const isActive = pathname === link.href
                   return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.06 + 0.08 }}
-                    >
-                      <Link
-                        href={link.href}
-                        style={{
-                          display: 'flex', alignItems: 'center',
-                          padding: '12px 16px', borderRadius: '12px',
-                          fontSize: '14px', textDecoration: 'none',
-                          color: isActive ? '#FF8303' : linkColor,
-                          backgroundColor: isActive ? 'rgba(255,131,3,0.1)' : 'transparent',
-                          fontFamily: 'var(--font-body)',
-                          transition: 'all 0.15s',
-                        }}
-                      >
+                    <motion.div key={link.href}
+                      initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06 + 0.08 }}>
+                      <Link href={link.href}
+                        className={`flex items-center px-4 py-3 rounded-xl text-sm transition-all duration-150 ${
+                          isActive
+                            ? 'text-primary bg-primary/10'
+                            : 'text-dark/70 dark:text-cream/75 hover:bg-black/5'
+                        }`}>
                         {link.label}
                       </Link>
                     </motion.div>
@@ -459,22 +227,24 @@ export default function Navbar() {
               </nav>
 
               {/* Footer */}
-              <div style={{ padding: '16px', borderTop: `1px solid ${navBorder}`, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="px-4 py-5 flex flex-col gap-3 border-t border-primary/25 dark:border-primary/40">
                 {!user ? (
                   <>
-                    <Link href="/login" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '10px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, border: '1.5px solid #FF8303', color: '#FF8303', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>
+                    <Link href="/login" className="w-full text-center py-2.5 rounded-xl text-sm font-medium border border-primary text-primary">
                       Login
                     </Link>
-                    <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '10px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, backgroundColor: '#FF8303', color: '#1B1A17', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>
+                    <Link href="/register" className="w-full text-center py-2.5 rounded-xl text-sm font-medium bg-primary text-dark">
                       Register
                     </Link>
                   </>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={user.image} alt={user.name} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', outline: '2px solid #FF8303', outlineOffset: '1px', flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '14px', fontWeight: 500, color: profileName, fontFamily: 'var(--font-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</p>
-                      <button onClick={() => { setUser(null); setMobileOpen(false) }} style={{ fontSize: '12px', color: '#FF8303', fontFamily: 'var(--font-body)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <div className="flex items-center gap-3">
+                    <img src={user.image} alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover shrink-0 outline outline-2 outline-primary outline-offset-1" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate text-dark dark:text-cream">{user.name}</p>
+                      <button onClick={() => { setUser(null); setMobileOpen(false) }}
+                        className="text-xs text-primary hover:opacity-80 transition-opacity">
                         Logout
                       </button>
                     </div>
@@ -498,10 +268,12 @@ function BookIcon() {
   )
 }
 
-function ChevronIcon({ open, color }) {
+function ChevronIcon({ open }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color || 'rgba(240,227,202,0.5)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      className="text-dark/50 dark:text-cream/50 transition-transform duration-200"
+      style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
       <polyline points="6 9 12 15 18 9" />
     </svg>
   )

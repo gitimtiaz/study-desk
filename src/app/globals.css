@@ -1,70 +1,41 @@
 @import "tailwindcss";
+@source "../";
+
 @plugin "daisyui" {
   themes: light --default, dark;
 }
 
-/* StudyDesk color tokens */
+/* dark classes  */
+@variant dark (&:is([data-theme=dark] *));
+
 @theme {
-  --color-primary: #FF8303;
+  --color-primary:      #FF8303;
   --color-primary-dark: #A35709;
-  --color-cream: #F0E3CA;
-  --color-dark: #1B1A17;
+  --color-cream:        #F0E3CA;
+  --color-dark:         #1B1A17;
 
   --font-heading: var(--font-dm-serif), Georgia, serif;
-  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-body:    var(--font-inter), system-ui, sans-serif;
 }
 
-/* DaisyUI light theme overrides */
 [data-theme="light"] {
-  --p: #FF8303;
-  --pc: #1B1A17;
-  --b1: #F0E3CA;
-  --b2: #e8d8b4;
-  --b3: #dccb9e;
-  --bc: #1B1A17;
+  --color-primary:         #FF8303;
+  --color-primary-content: #1B1A17;
+  --color-base-100:        #F0E3CA;
+  --color-base-200:        #e8d8b4;
+  --color-base-300:        #dccb9e;
+  --color-base-content:    #1B1A17;
 }
 
-/* DaisyUI dark theme overrides */
 [data-theme="dark"] {
-  --p: #FF8303;
-  --pc: #F0E3CA;
-  --b1: #1B1A17;
-  --b2: #252318;
-  --b3: #2e2b1e;
-  --bc: #F0E3CA;
+  --color-primary:         #FF8303;
+  --color-primary-content: #F0E3CA;
+  --color-base-100:        #1B1A17;
+  --color-base-200:        #252318;
+  --color-base-300:        #2e2b1e;
+  --color-base-content:    #F0E3CA;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--font-body);
-}
-
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-heading);
-}
-
-/* Footer responsive grid */
-.footer-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-}
-
-@media (min-width: 640px) {
-  .footer-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-  }
-}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); }
+h1, h2, h3, h4 { font-family: var(--font-heading); }
