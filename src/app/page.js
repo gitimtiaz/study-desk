@@ -1,4 +1,5 @@
 import HeroBanner from '@/components/home/HeroBanner'
+import StatsStrip from '@/components/home/StatsStrip'
 
 export const metadata = {
   title: 'StudyDesk – Home',
@@ -8,9 +9,8 @@ export default function HomePage() {
   return (
     <>
       <HeroBanner />
-      {/* Stats strip — Commit 6 */}
-      {/* Rooms section — Commit 7 */}
-      {/* How it works + Why StudyDesk — Commit 8 */}
+      <StatsStrip />
+      
     </>
   )
 }

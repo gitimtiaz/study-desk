@@ -15,18 +15,18 @@ const fadeUp = {
 }
 
 const stats = [
-  { value: '50+',  label: 'Study Rooms' },
+  { value: '50+', label: 'Study Rooms' },
   { value: '200+', label: 'Happy Students' },
-  { value: '1K+',  label: 'Hours Booked' },
+  { value: '1K+', label: 'Hours Booked' },
 ]
 
 export default function HeroBanner() {
   return (
-    <section className="bg-dark min-h-[calc(100vh-64px)] flex items-center relative overflow-hidden">
+    <section className="bg-cream dark:bg-dark min-h-[calc(100vh-64px)] transition-colors duration-300 flex items-center relative overflow-hidden">
 
       {/* Dot-grid overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(circle, rgba(255,131,3,0.13) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-70 dark:opacity-100"
+        style={{ backgroundImage: 'radial-gradient(circle, rgba(123,50,5,0.33) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
       {/* Ambient glow */}
       <div className="absolute top-[30%] -left-[5%] w-[500px] h-[500px] rounded-full pointer-events-none z-0"
@@ -49,7 +49,7 @@ export default function HeroBanner() {
           </motion.div>
 
           <motion.h1 variants={fadeUp}
-            className="font-heading text-cream font-normal leading-[1.18] mb-5"
+            className="font-heading text-dark dark:text-cream font-normal leading-[1.18] mb-5"
             style={{ fontSize: 'clamp(2.4rem, 4.5vw, 3.8rem)' }}>
             Find Your Perfect{' '}
             <span className="text-primary relative inline-block">
@@ -61,7 +61,7 @@ export default function HeroBanner() {
           </motion.h1>
 
           {/* Subtitle */}
-          <motion.p variants={fadeUp} className="text-cream/60 text-base leading-[1.75] mb-9 max-w-[480px]">
+          <motion.p variants={fadeUp} className="text-dark/65 dark:text-cream/60 text-base leading-[1.75] mb-9 max-w-[480px]">
             Browse and book quiet, private study rooms in your library.
             List your own room and earn. All with real-time conflict detection.
           </motion.p>
@@ -73,7 +73,7 @@ export default function HeroBanner() {
               Explore Rooms <ArrowIcon />
             </Link>
             <Link href="/register"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-[10px] border border-cream/20 text-cream/80 font-medium text-[15px] transition-all duration-200 hover:border-primary hover:text-primary">
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-[10px] border border-dark/15 dark:border-cream/20 text-dark/80 dark:text-cream/80 font-medium text-[15px] transition-all duration-200 hover:border-primary hover:text-primary">
               List Your Room
             </Link>
           </motion.div>
@@ -82,10 +82,10 @@ export default function HeroBanner() {
           <motion.div variants={fadeUp} className="flex items-center gap-7 flex-wrap">
             {stats.map(({ value, label }, i) => (
               <div key={label} className="flex items-center gap-2.5">
-                {i > 0 && <span className="w-px h-7 bg-cream/10" />}
+                {i > 0 && <span className="w-px h-7 bg-dark/10 dark:bg-cream/10" />}
                 <div>
                   <p className="font-heading text-primary text-[1.4rem] leading-none mb-1">{value}</p>
-                  <p className="text-[11px] text-cream/45 tracking-[0.05em]">{label}</p>
+                  <p className="text-[11px] text-dark/45 dark:text-cream/45 tracking-[0.05em]">{label}</p>
                 </div>
               </div>
             ))}

@@ -22,7 +22,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="bg-dark border-t border-primary/30">
+    <footer className="bg-cream dark:bg-dark border-t border-primary/30">
 
       {/* Main grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -34,7 +34,7 @@ export default function Footer() {
               <BookIcon />
               <span className="text-xl font-heading text-primary">StudyDesk</span>
             </Link>
-            <p className="text-sm leading-relaxed mb-5 text-cream/50 max-w-[220px]">
+            <p className="text-sm leading-relaxed mb-5 text-dark/45 dark:text-cream/50 max-w-[220px]">
               Your gateway to distraction-free focus. Browse, book, and manage private study rooms with ease.
             </p>
             <span className="inline-block text-xs px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/25 tracking-[0.04em]">
@@ -49,7 +49,7 @@ export default function Footer() {
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}
-                    className="group flex items-center gap-2 text-sm text-cream/55 hover:text-cream transition-colors duration-200">
+                    className="group flex items-center gap-2 text-sm text-dark/45 hover:text-dark dark:text-cream/55 hover:text-cream transition-colors duration-200">
                     <span className="inline-block w-3 h-px bg-primary transition-all duration-200 group-hover:w-5" />
                     {link.label}
                   </Link>
@@ -71,7 +71,7 @@ export default function Footer() {
                 return (
                   <li key={text}>
                     <Tag href={href || undefined}
-                      className="flex items-start gap-3 text-sm text-cream/55 hover:text-cream transition-colors duration-200">
+                      className="flex items-start gap-3 text-sm text-dark/45 hover:text-dark dark:text-cream/55 hover:text-cream transition-colors duration-200">
                       <span className="mt-0.5 shrink-0 text-primary">{icon}</span>
                       {text}
                     </Tag>
@@ -84,13 +84,13 @@ export default function Footer() {
           {/* Col-4 Follow Us */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-primary mb-5">Follow Us</h4>
-            <p className="text-sm text-cream/45 mb-5 leading-relaxed">
+            <p className="text-sm text-dark/45 dark:text-cream/45 mb-5 leading-relaxed">
               Stay updated with new rooms and community highlights.
             </p>
             <div className="flex items-center gap-2.5 flex-wrap">
               {socialLinks.map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-cream/60 border border-primary/15 hover:bg-primary hover:text-dark hover:-translate-y-0.5 transition-all duration-200">
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-dark/50 dark:text-cream/60 border border-primary/15 hover:bg-primary hover:text-dark hover:-translate-y-0.5 transition-all duration-200">
                   {s.icon}
                 </a>
               ))}
@@ -103,8 +103,8 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-primary/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-cream/35">© {year} StudyDesk. All rights reserved.</p>
-          <p className="text-xs text-cream/25">Built with focus, designed for learners.</p>
+          <p className="text-xs text-dark/45 dark:text-cream/35">© {year} StudyDesk. All rights reserved.</p>
+          <p className="text-xs text-dark/45 dark:text-cream/25">Built with focus, designed for learners.</p>
         </div>
       </div>
 
