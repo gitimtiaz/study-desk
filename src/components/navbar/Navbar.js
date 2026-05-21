@@ -2,38 +2,36 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { useSession, signOut } from '@/lib/auth-client'
 
 const publicLinks = [
-  { label: 'Home', href: '/' },
+  { label: 'Home',  href: '/' },
   { label: 'Rooms', href: '/rooms' },
 ]
 
 const privateLinks = [
-  { label: 'Home', href: '/' },
-  { label: 'Rooms', href: '/rooms' },
-  { label: 'Add Room', href: '/add-room' },
+  { label: 'Home',       href: '/' },
+  { label: 'Rooms',      href: '/rooms' },
+  { label: 'Add Room',   href: '/add-room' },
   { label: 'My Listings', href: '/my-listings' },
   { label: 'My Bookings', href: '/my-bookings' },
 ]
 
-// Mock user
-const MOCK_USER = {
-  name: 'Imtiaz Ahmed',
-  email: 'imtiaz@studydesk.com',
-  image: 'https://api.dicebear.com/7.x/initials/svg?seed=IA&backgroundColor=FF8303&textColor=1B1A17',
-}
-
 export default function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen,  setMobileOpen]  = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [user, setUser] = useState(null)
+  const [scrolled,    setScrolled]    = useState(false)
 
-  const pathname = usePathname()
+  const pathname   = usePathname()
+  const router     = useRouter()
   const profileRef = useRef(null)
+
+  // auth session
+  const { data: session, isPending } = useSession()
+  const user     = session?.user
   const navLinks = user ? privateLinks : publicLinks
 
   useEffect(() => {
@@ -44,13 +42,22 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false)
+      if (profileRef.current && !profileRef.current.contains(e.target))
+        setProfileOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  const handleLogout = async () => {
+    await signOut()
+    setProfileOpen(false)
+    setMobileOpen(false)
+    router.push('/')
+    router.refresh()
+  }
 
   return (
     <>
@@ -63,7 +70,7 @@ export default function Navbar() {
               <BookIcon />
               <div className="flex flex-col leading-tight">
                 <span className="text-xl font-heading text-primary">StudyDesk</span>
-                <span className="hidden sm:block text-xs tracking-widest uppercase text-dark/35 dark:text-cream/35">
+                <span className="hidden sm:block text-[9px] tracking-[0.18em] uppercase text-dark/35 dark:text-cream/35">
                   Distraction-Free Focus
                 </span>
               </div>
@@ -95,8 +102,16 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
               <ThemeToggle />
 
-              {/* Public buttons */}
-              {!user && (
+              {/* Loading skeleton while session resolves */}
+              {isPending && (
+                <div className="hidden md:flex items-center gap-3">
+                  <div className="w-16 h-8 rounded-lg bg-base-300 animate-pulse" />
+                  <div className="w-20 h-8 rounded-lg bg-base-300 animate-pulse" />
+                </div>
+              )}
+
+              {/* Public: Login + Register */}
+              {!isPending && !user && (
                 <div className="hidden md:flex items-center gap-3">
                   <Link href="/login"
                     className="px-4 py-1.5 rounded-lg text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-dark transition-all duration-200">
@@ -109,14 +124,17 @@ export default function Navbar() {
                 </div>
               )}
 
-              {/* Profile dropdown */}
-              {user && (
+              {/* Private: Profile dropdown */}
+              {!isPending && user && (
                 <div className="hidden md:block relative" ref={profileRef}>
                   <button onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-black/5 transition-colors">
-                    <img src={user.image} alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover outline outline-2 outline-primary outline-offset-1" />
-                    <span className="text-sm text-dark dark:text-cream">{user.name.split(' ')[0]}</span>
+                    <img
+                      src={user.image || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover outline outline-2 outline-primary outline-offset-1"
+                    />
+                    <span className="text-sm text-dark dark:text-cream">{user.name?.split(' ')[0]}</span>
                     <ChevronIcon open={profileOpen} />
                   </button>
 
@@ -134,8 +152,8 @@ export default function Navbar() {
                           <p className="text-xs mt-0.5 truncate text-dark/60 dark:text-cream/60">{user.email}</p>
                         </div>
                         {[
-                          { label: 'My Listings', href: '/my-listings' },
-                          { label: 'My Bookings', href: '/my-bookings' },
+                          { label: 'My Listings',  href: '/my-listings' },
+                          { label: 'My Bookings',  href: '/my-bookings' },
                         ].map((item) => (
                           <Link key={item.href} href={item.href}
                             className="flex items-center px-4 py-2.5 text-sm text-dark/80 dark:text-cream/80 hover:bg-black/5 transition-colors">
@@ -143,7 +161,7 @@ export default function Navbar() {
                           </Link>
                         ))}
                         <div className="border-t border-primary/20">
-                          <button onClick={() => { setUser(null); setProfileOpen(false) }}
+                          <button onClick={handleLogout}
                             className="w-full flex items-center px-4 py-2.5 text-sm text-primary hover:bg-black/5 transition-colors">
                             Logout
                           </button>
@@ -154,7 +172,7 @@ export default function Navbar() {
                 </div>
               )}
 
-              {/* Hamburger */}
+              {/* Mobile hamburger */}
               <button onClick={() => setMobileOpen(true)}
                 className="md:hidden flex flex-col justify-center gap-[5px] w-9 h-9 rounded-lg hover:bg-black/5 transition-colors p-2"
                 aria-label="Open navigation menu">
@@ -167,14 +185,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
-      {/* DEV ONLY */}
-      <div className="fixed bottom-4 left-4 z-50">
-        <button onClick={() => setUser(user ? null : MOCK_USER)}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-dark text-cream opacity-70">
-          DEV: {user ? 'Mock Logout' : 'Mock Login'}
-        </button>
-      </div>
 
       {/* Mobile drawer */}
       <AnimatePresence>
@@ -199,10 +209,8 @@ export default function Navbar() {
                   <span className="text-xl font-heading text-primary">StudyDesk</span>
                 </div>
                 <button onClick={() => setMobileOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors text-dark/50 dark:text-cream/50"
-                  aria-label="Close menu">
-                  ✕
-                </button>
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 text-dark/50 dark:text-cream/50"
+                  aria-label="Close menu">✕</button>
               </div>
 
               {/* Links */}
@@ -214,10 +222,8 @@ export default function Navbar() {
                       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.06 + 0.08 }}>
                       <Link href={link.href}
-                        className={`flex items-center px-4 py-3 rounded-xl text-sm transition-all duration-150 ${
-                          isActive
-                            ? 'text-primary bg-primary/10'
-                            : 'text-dark/70 dark:text-cream/75 hover:bg-black/5'
+                        className={`flex items-center px-4 py-3 rounded-xl text-sm transition-all ${
+                          isActive ? 'text-primary bg-primary/10' : 'text-dark/70 dark:text-cream/75 hover:bg-black/5'
                         }`}>
                         {link.label}
                       </Link>
@@ -239,12 +245,14 @@ export default function Navbar() {
                   </>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <img src={user.image} alt={user.name}
-                      className="w-10 h-10 rounded-full object-cover shrink-0 outline outline-2 outline-primary outline-offset-1" />
+                    <img
+                      src={user.image || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover shrink-0 outline outline-2 outline-primary outline-offset-1"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate text-dark dark:text-cream">{user.name}</p>
-                      <button onClick={() => { setUser(null); setMobileOpen(false) }}
-                        className="text-xs text-primary hover:opacity-80 transition-opacity">
+                      <button onClick={handleLogout} className="text-xs text-primary hover:opacity-80 transition-opacity">
                         Logout
                       </button>
                     </div>
