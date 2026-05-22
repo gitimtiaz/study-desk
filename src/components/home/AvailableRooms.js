@@ -1,71 +1,9 @@
 'use client'
-
+import { useState, useEffect } from 'react'
+import { api } from '@/lib/api'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import RoomCard from '@/components/rooms/RoomCard'
-
-const mockRooms = [
-  {
-    _id: '1',
-    name: 'Silent Focus Pod',
-    description: 'A fully enclosed single-user pod designed for deep work. Zero noise, zero distractions.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop',
-    floor: 'Floor 1',
-    capacity: '1–2',
-    hourlyRate: 4,
-    amenities: ['Wi-Fi', 'Quiet Zone', 'Power Outlets'],
-  },
-  {
-    _id: '2',
-    name: 'Collaboration Hub',
-    description: 'Spacious room with a large whiteboard and projector, ideal for group study sessions.',
-    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&auto=format&fit=crop',
-    floor: 'Floor 2',
-    capacity: '4–6',
-    hourlyRate: 8,
-    amenities: ['Projector', 'Whiteboard', 'Wi-Fi', 'Air Conditioning'],
-  },
-  {
-    _id: '3',
-    name: 'Private Reading Room',
-    description: 'Cozy two-person room surrounded by bookshelves. Perfect for focused reading or tutoring.',
-    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&auto=format&fit=crop',
-    floor: 'Floor 3',
-    capacity: '1–2',
-    hourlyRate: 5,
-    amenities: ['Quiet Zone', 'Power Outlets', 'Wi-Fi'],
-  },
-  {
-    _id: '4',
-    name: 'Tech Lab Alpha',
-    description: 'Equipped with high-speed internet and multiple power outlets. Great for coding sessions.',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&auto=format&fit=crop',
-    floor: 'Floor 1',
-    capacity: '2–4',
-    hourlyRate: 7,
-    amenities: ['Wi-Fi', 'Power Outlets', 'Air Conditioning', 'Whiteboard'],
-  },
-  {
-    _id: '5',
-    name: 'Open Study Lounge',
-    description: 'A bright and airy open-plan room with natural light. Relaxed atmosphere for casual study.',
-    image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&auto=format&fit=crop',
-    floor: 'Floor 2',
-    capacity: '3–5',
-    hourlyRate: 6,
-    amenities: ['Wi-Fi', 'Power Outlets'],
-  },
-  {
-    _id: '6',
-    name: 'Executive Suite B',
-    description: 'Premium private room with ergonomic furniture and a projector. Ideal for presentations.',
-    image: 'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=600&auto=format&fit=crop',
-    floor: 'Floor 4',
-    capacity: '2–3',
-    hourlyRate: 10,
-    amenities: ['Projector', 'Air Conditioning', 'Wi-Fi', 'Quiet Zone', 'Power Outlets'],
-  },
-]
 
 const container = {
   hidden: {},
@@ -78,6 +16,13 @@ const fadeUp = {
 }
 
 export default function AvailableRooms() {
+  const [rooms, setRooms] = useState([])
+  useEffect(() => {
+    api.getLatestRooms()
+      .then(data => setRooms(Array.isArray(data) ? data : data.rooms || []))
+      .catch(() => { })
+  }, [])
+
   return (
     <section className="bg-base-100 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,7 +69,7 @@ export default function AvailableRooms() {
           viewport={{ once: true, amount: 0.1 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {mockRooms.map((room) => (
+          {rooms.map((room) => (
             <motion.div key={room._id} variants={fadeUp}>
               <RoomCard room={room} />
             </motion.div>

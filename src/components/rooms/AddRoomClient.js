@@ -1,5 +1,6 @@
 'use client'
 
+import { api } from '@/lib/api'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -16,12 +17,12 @@ const EMPTY = {
 
 export default function AddRoomClient() {
   const { data: session, isPending } = useSession()
-  const user   = session?.user
+  const user = session?.user
   const router = useRouter()
 
-  const [form,     setForm]     = useState(EMPTY)
-  const [errors,   setErrors]   = useState({})
-  const [loading,  setLoading]  = useState(false)
+  const [form, setForm] = useState(EMPTY)
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
   const [imgError, setImgError] = useState(false)
 
   useEffect(() => { document.title = 'StudyDesk – Add Room' }, [])
@@ -47,12 +48,12 @@ export default function AddRoomClient() {
 
   const validate = () => {
     const e = {}
-    if (!form.name.trim())        e.name        = 'Room name is required'
+    if (!form.name.trim()) e.name = 'Room name is required'
     if (!form.description.trim()) e.description = 'Description is required'
-    if (!form.image.trim())       e.image       = 'Image URL is required'
-    if (!form.floor.trim())       e.floor       = 'Floor is required'
-    if (!form.capacity)           e.capacity    = 'Capacity is required'
-    if (!form.hourlyRate)         e.hourlyRate  = 'Hourly rate is required'
+    if (!form.image.trim()) e.image = 'Image URL is required'
+    if (!form.floor.trim()) e.floor = 'Floor is required'
+    if (!form.capacity) e.capacity = 'Capacity is required'
+    if (!form.hourlyRate) e.hourlyRate = 'Hourly rate is required'
     else if (Number(form.hourlyRate) <= 0) e.hourlyRate = 'Rate must be greater than 0'
     return e
   }
@@ -64,10 +65,19 @@ export default function AddRoomClient() {
     setErrors({})
     setLoading(true)
 
-    await new Promise(r => setTimeout(r, 900))
-    setLoading(false)
-    toast.success('Room added successfully!')
-    router.push('/my-listings')
+    try {
+      await api.addRoom({
+        ...form,
+        capacity: Number(form.capacity),
+        hourlyRate: Number(form.hourlyRate),
+      })
+      toast.success('Room added successfully!')
+      router.push('/my-listings')
+    } catch (err) {
+      toast.error(err.message || 'Failed to add room')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Show nothing while session loads
@@ -174,11 +184,10 @@ export default function AddRoomClient() {
                 const active = form.amenities.includes(a)
                 return (
                   <button key={a} type="button" onClick={() => toggleAmenity(a)}
-                    className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 text-left ${
-                      active
-                        ? 'bg-primary text-dark border-primary shadow-[0_2px_8px_rgba(255,131,3,0.3)]'
-                        : 'bg-base-100 text-base-content/65 border-base-300 hover:border-primary/40'
-                    }`}>
+                    className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200 text-left ${active
+                      ? 'bg-primary text-dark border-primary shadow-[0_2px_8px_rgba(255,131,3,0.3)]'
+                      : 'bg-base-100 text-base-content/65 border-base-300 hover:border-primary/40'
+                      }`}>
                     <AmenityIcon name={a} active={active} />
                     {a}
                   </button>
@@ -247,11 +256,11 @@ function PageSkeleton() {
 function AmenityIcon({ name, active }) {
   const color = active ? '#1B1A17' : undefined
   const icons = {
-    'Whiteboard':    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
-    'Projector':     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="10" rx="2" /><circle cx="12" cy="12" r="2" /><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /></svg>,
-    'Wi-Fi':         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0" /><path d="M1.42 9a16 16 0 0 1 21.16 0" /><path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><circle cx="12" cy="20" r="1" /></svg>,
+    'Whiteboard': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
+    'Projector': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="10" rx="2" /><circle cx="12" cy="12" r="2" /><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /></svg>,
+    'Wi-Fi': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0" /><path d="M1.42 9a16 16 0 0 1 21.16 0" /><path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><circle cx="12" cy="20" r="1" /></svg>,
     'Power Outlets': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /><line x1="12" y1="12" x2="12" y2="16" /><line x1="10" y1="14" x2="14" y2="14" /></svg>,
-    'Quiet Zone':    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>,
+    'Quiet Zone': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>,
     'Air Conditioning': <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" /></svg>,
   }
   return icons[name] || null

@@ -1,51 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { api } from '@/lib/api'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useSession } from '@/lib/auth-client'
-
-// Mock bookings 
-const MOCK_BOOKINGS = [
-  {
-    _id: 'b1',
-    room: { _id: '2', name: 'Collaboration Hub', image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&auto=format&fit=crop', floor: 'Floor 2' },
-    date: '2026-06-15',
-    startTime: '10:00', endTime: '13:00',
-    totalCost: 24, hourlyRate: 8,
-    status: 'confirmed',
-    note: 'Group project session',
-  },
-  {
-    _id: 'b2',
-    room: { _id: '1', name: 'Silent Focus Pod', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=300&auto=format&fit=crop', floor: 'Floor 1' },
-    date: '2026-06-20',
-    startTime: '14:00', endTime: '16:00',
-    totalCost: 8, hourlyRate: 4,
-    status: 'confirmed',
-    note: 'Exam prep — need complete silence',
-  },
-  {
-    _id: 'b3',
-    room: { _id: '6', name: 'Executive Suite B', image: 'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=300&auto=format&fit=crop', floor: 'Floor 4' },
-    date: '2026-05-01',
-    startTime: '09:00', endTime: '11:00',
-    totalCost: 20, hourlyRate: 10,
-    status: 'confirmed',
-    note: '',
-  },
-  {
-    _id: 'b4',
-    room: { _id: '3', name: 'Private Reading Room', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&auto=format&fit=crop', floor: 'Floor 3' },
-    date: '2026-06-18',
-    startTime: '16:00', endTime: '18:00',
-    totalCost: 10, hourlyRate: 5,
-    status: 'cancelled',
-    note: '',
-  },
-]
 
 // Future date check (today or later)
 function isFuture(dateStr) {
@@ -60,13 +21,14 @@ function formatDate(dateStr) {
 
 export default function MyBookingsClient() {
   const { data: session, isPending } = useSession()
-  const user   = session?.user
+  const user = session?.user
   const router = useRouter()
 
-  const [bookings,    setBookings]    = useState(MOCK_BOOKINGS)
+  const [loading, setLoading] = useState(true)
+  const [bookings, setBookings] = useState([])
   const [cancelTarget, setCancelTarget] = useState(null)
   const [cancelLoading, setCancelLoading] = useState(false)
-  const [filter, setFilter] = useState('all') 
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => { document.title = 'StudyDesk – My Bookings' }, [])
 
@@ -74,10 +36,27 @@ export default function MyBookingsClient() {
     if (!isPending && !user) router.replace('/login')
   }, [isPending, user, router])
 
+  useEffect(() => {
+    if (!user) return
+    api.getMyBookings()
+      .then(data => {
+        setBookings(
+          Array.isArray(data)
+            ? data
+            : data.bookings || []
+        )
+      })
+      .catch(() => {
+        setBookings([])
+        toast.error('Failed to load bookings')
+      })
+      .finally(() => setLoading(false))
+  }, [user])
+
   const handleCancel = async () => {
     setCancelLoading(true)
-   
-    await new Promise(r => setTimeout(r, 700))
+
+    await api.cancelBooking(cancelTarget._id)
     setBookings(p =>
       p.map(b => b._id === cancelTarget._id ? { ...b, status: 'cancelled' } : b)
     )
@@ -93,12 +72,12 @@ export default function MyBookingsClient() {
   })
 
   const counts = {
-    all:       bookings.length,
+    all: bookings.length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     cancelled: bookings.filter(b => b.status === 'cancelled').length,
   }
 
-  if (isPending) return <PageSkeleton />
+  if (isPending || loading) return <PageSkeleton />
 
   return (
     <div className="min-h-screen bg-base-100">
@@ -127,20 +106,18 @@ export default function MyBookingsClient() {
         {bookings.length > 0 && (
           <div className="flex items-center gap-2 mb-6 flex-wrap">
             {[
-              { key: 'all',       label: 'All' },
+              { key: 'all', label: 'All' },
               { key: 'confirmed', label: 'Confirmed' },
               { key: 'cancelled', label: 'Cancelled' },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setFilter(key)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
-                  filter === key
-                    ? 'bg-primary text-dark border-primary'
-                    : 'bg-base-200 text-base-content/65 border-base-300 hover:border-primary/40'
-                }`}>
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${filter === key
+                  ? 'bg-primary text-dark border-primary'
+                  : 'bg-base-200 text-base-content/65 border-base-300 hover:border-primary/40'
+                  }`}>
                 {label}
-                <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-                  filter === key ? 'bg-dark/15 text-dark' : 'bg-base-300 text-base-content/50'
-                }`}>
+                <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${filter === key ? 'bg-dark/15 text-dark' : 'bg-base-300 text-base-content/50'
+                  }`}>
                   {counts[key]}
                 </span>
               </button>
@@ -157,7 +134,7 @@ export default function MyBookingsClient() {
         ) : (
           <div className="flex flex-col gap-4">
             {filtered.map((booking, i) => {
-              const future   = isFuture(booking.date)
+              const future = isFuture(booking.date)
               const canCancel = booking.status === 'confirmed' && future
 
               return (
@@ -165,11 +142,10 @@ export default function MyBookingsClient() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.07 }}
-                  className={`bg-base-100 rounded-2xl border overflow-hidden transition-all duration-200 ${
-                    booking.status === 'cancelled'
-                      ? 'border-base-300 opacity-70'
-                      : 'border-base-300 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(255,131,3,0.08)]'
-                  }`}
+                  className={`bg-base-100 rounded-2xl border overflow-hidden transition-all duration-200 ${booking.status === 'cancelled'
+                    ? 'border-base-300 opacity-70'
+                    : 'border-base-300 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(255,131,3,0.08)]'
+                    }`}
                 >
                   <div className="flex items-start gap-4 p-4 sm:p-5">
 
@@ -177,9 +153,8 @@ export default function MyBookingsClient() {
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-base-300">
                       {booking.room.image && (
                         <img src={booking.room.image} alt={booking.room.name}
-                          className={`w-full h-full object-cover transition-all duration-300 ${
-                            booking.status === 'cancelled' ? 'grayscale' : ''
-                          }`}
+                          className={`w-full h-full object-cover transition-all duration-300 ${booking.status === 'cancelled' ? 'grayscale' : ''
+                            }`}
                         />
                       )}
                     </div>
@@ -289,11 +264,10 @@ export default function MyBookingsClient() {
 function StatusBadge({ status }) {
   const isConfirmed = status === 'confirmed'
   return (
-    <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-      isConfirmed
-        ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-        : 'bg-red-500/15 text-red-600 dark:text-red-400'
-    }`}>
+    <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${isConfirmed
+      ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+      : 'bg-red-500/15 text-red-600 dark:text-red-400'
+      }`}>
       <span className={`w-1.5 h-1.5 rounded-full ${isConfirmed ? 'bg-green-500' : 'bg-red-500'}`} />
       {isConfirmed ? 'Confirmed' : 'Cancelled'}
     </span>

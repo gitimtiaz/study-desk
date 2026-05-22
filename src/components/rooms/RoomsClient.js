@@ -1,77 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import RoomCard from '@/components/rooms/RoomCard'
+import { api } from '@/lib/api'
 
 const AMENITIES = ['Whiteboard', 'Projector', 'Wi-Fi', 'Power Outlets', 'Quiet Zone', 'Air Conditioning']
 
-// Mock data 
-const ALL_ROOMS = [
-  {
-    _id: '1', name: 'Silent Focus Pod',
-    description: 'A fully enclosed single-user pod designed for deep work. Zero noise, zero distractions.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop',
-    floor: 'Floor 1', capacity: '1–2', hourlyRate: 4,
-    amenities: ['Wi-Fi', 'Quiet Zone', 'Power Outlets'],
-  },
-  {
-    _id: '2', name: 'Collaboration Hub',
-    description: 'Spacious room with a large whiteboard and projector, ideal for group study sessions.',
-    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&auto=format&fit=crop',
-    floor: 'Floor 2', capacity: '4–6', hourlyRate: 8,
-    amenities: ['Projector', 'Whiteboard', 'Wi-Fi', 'Air Conditioning'],
-  },
-  {
-    _id: '3', name: 'Private Reading Room',
-    description: 'Cozy two-person room surrounded by bookshelves. Perfect for focused reading or tutoring.',
-    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&auto=format&fit=crop',
-    floor: 'Floor 3', capacity: '1–2', hourlyRate: 5,
-    amenities: ['Quiet Zone', 'Power Outlets', 'Wi-Fi'],
-  },
-  {
-    _id: '4', name: 'Tech Lab Alpha',
-    description: 'Equipped with high-speed internet and multiple power outlets. Great for coding sessions.',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&auto=format&fit=crop',
-    floor: 'Floor 1', capacity: '2–4', hourlyRate: 7,
-    amenities: ['Wi-Fi', 'Power Outlets', 'Air Conditioning', 'Whiteboard'],
-  },
-  {
-    _id: '5', name: 'Open Study Lounge',
-    description: 'A bright and airy open-plan room with natural light. Relaxed atmosphere for casual study.',
-    image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&auto=format&fit=crop',
-    floor: 'Floor 2', capacity: '3–5', hourlyRate: 6,
-    amenities: ['Wi-Fi', 'Power Outlets'],
-  },
-  {
-    _id: '6', name: 'Executive Suite B',
-    description: 'Premium private room with ergonomic furniture and a projector. Ideal for presentations.',
-    image: 'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=600&auto=format&fit=crop',
-    floor: 'Floor 4', capacity: '2–3', hourlyRate: 10,
-    amenities: ['Projector', 'Air Conditioning', 'Wi-Fi', 'Quiet Zone', 'Power Outlets'],
-  },
-  {
-    _id: '7', name: 'Seminar Room 101',
-    description: 'A large seminar-style room with tiered seating and a full projection setup.',
-    image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop',
-    floor: 'Floor 3', capacity: '6–10', hourlyRate: 12,
-    amenities: ['Projector', 'Whiteboard', 'Air Conditioning', 'Wi-Fi'],
-  },
-  {
-    _id: '8', name: 'Corner Nook',
-    description: 'A compact quiet spot ideal for solo exam preparation or a short focused sprint.',
-    image: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?w=600&auto=format&fit=crop',
-    floor: 'Floor 1', capacity: '1', hourlyRate: 3,
-    amenities: ['Quiet Zone', 'Power Outlets'],
-  },
-  {
-    _id: '9', name: 'Boardroom Pro',
-    description: 'Professional boardroom layout with full AV setup. Best for group presentations.',
-    image: 'https://images.unsplash.com/photo-1577412647305-991150c7d163?w=600&auto=format&fit=crop',
-    floor: 'Floor 5', capacity: '6–8', hourlyRate: 15,
-    amenities: ['Projector', 'Whiteboard', 'Air Conditioning', 'Wi-Fi', 'Power Outlets'],
-  },
-]
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -79,22 +14,41 @@ const fadeUp = {
 }
 
 export default function RoomsClient() {
-  const [search,    setSearch]    = useState('')
-  const [selected,  setSelected]  = useState([])
+  const [allRooms, setAllRooms] = useState([])
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState([])
   const [filterOpen, setFilterOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.getRooms()
+      .then(data => setAllRooms(Array.isArray(data) ? data : data.rooms || []))
+      .catch(() => { })
+      .finally(() => setLoading(false))
+  }, [])
 
   const toggleAmenity = (a) =>
     setSelected(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])
 
   const clearFilters = () => { setSearch(''); setSelected([]) }
 
-  const filtered = ALL_ROOMS.filter(room => {
+  const filtered = allRooms.filter(room => {
     const matchName = room.name.toLowerCase().includes(search.toLowerCase())
     const matchAmenities = selected.every(a => room.amenities.includes(a))
     return matchName && matchAmenities
   })
 
   const hasFilters = search || selected.length > 0
+
+  if (loading) return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1,2,3,4,5,6].map(i => (
+          <div key={i} className="h-72 rounded-2xl bg-base-200 animate-pulse" />
+        ))}
+      </div>
+    </div>
+  )
   
   return (
     <div className="min-h-screen bg-base-100">
@@ -144,11 +98,10 @@ export default function RoomsClient() {
 
             {/* Mobile filter toggle */}
             <button onClick={() => setFilterOpen(!filterOpen)}
-              className={`md:hidden flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                selected.length > 0
+              className={`md:hidden flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${selected.length > 0
                   ? 'border-primary text-primary bg-primary/10'
                   : 'border-base-300 text-base-content/70 bg-base-200'
-              }`}>
+                }`}>
               <FilterIcon />
               Filters {selected.length > 0 && <span className="w-4 h-4 rounded-full bg-primary text-dark text-[10px] font-bold flex items-center justify-center">{selected.length}</span>}
             </button>
@@ -157,11 +110,10 @@ export default function RoomsClient() {
             <div className="hidden md:flex items-center gap-2 flex-wrap flex-1">
               {AMENITIES.map((a) => (
                 <button key={a} onClick={() => toggleAmenity(a)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
-                    selected.includes(a)
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${selected.includes(a)
                       ? 'bg-primary text-dark border-primary'
                       : 'bg-base-200 text-base-content/65 border-base-300 hover:border-primary/50 hover:text-base-content'
-                  }`}>
+                    }`}>
                   {a}
                 </button>
               ))}
@@ -192,11 +144,10 @@ export default function RoomsClient() {
                 <div className="pt-3 pb-1 flex flex-wrap gap-2">
                   {AMENITIES.map((a) => (
                     <button key={a} onClick={() => toggleAmenity(a)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                        selected.includes(a)
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${selected.includes(a)
                           ? 'bg-primary text-dark border-primary'
                           : 'bg-base-200 text-base-content/65 border-base-300'
-                      }`}>
+                        }`}>
                       {a}
                     </button>
                   ))}
@@ -215,6 +166,8 @@ export default function RoomsClient() {
           </AnimatePresence>
         </div>
       </div>
+
+      
 
       {/* Rooms grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

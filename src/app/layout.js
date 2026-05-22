@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from '@/context/ThemeContext'
 import Navbar from '@/components/navbar/Navbar'
 import Footer from '@/components/footer/Footer'
+import SessionSync from '@/components/SessionSync'
 import './globals.css'
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <div className="flex flex-col min-h-screen">
             <Navbar />
+            <SessionSync />
             <main className="flex-1">
               {children}
             </main>

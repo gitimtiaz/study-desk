@@ -1,24 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { api } from '@/lib/api'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useSession } from '@/lib/auth-client'
 import BookingModal from '@/components/bookings/BookingModal'
 
-// Mock data
-const ROOMS = [
-  { _id: '1', name: 'Silent Focus Pod', description: 'A fully enclosed single-user pod designed for deep work. Zero noise, zero distractions. Each pod is sound-insulated and comes with a dedicated desk lamp, ergonomic chair, and a small shelf for your books.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop', floor: 'Floor 1', capacity: '1–2', hourlyRate: 4, amenities: ['Wi-Fi', 'Quiet Zone', 'Power Outlets'], bookingCount: 12, ownerId: 'demo-owner' },
-  { _id: '2', name: 'Collaboration Hub', description: 'Spacious room with a large whiteboard and projector, ideal for group study sessions and team projects. Features a conference table that seats up to 6 comfortably.', image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop', floor: 'Floor 2', capacity: '4–6', hourlyRate: 8, amenities: ['Projector', 'Whiteboard', 'Wi-Fi', 'Air Conditioning'], bookingCount: 34, ownerId: 'demo-owner' },
-  { _id: '3', name: 'Private Reading Room', description: 'Cozy two-person room surrounded by bookshelves. Perfect for focused reading, tutoring sessions, or one-on-one collaboration in a calm environment.', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&auto=format&fit=crop', floor: 'Floor 3', capacity: '1–2', hourlyRate: 5, amenities: ['Quiet Zone', 'Power Outlets', 'Wi-Fi'], bookingCount: 8, ownerId: 'other-owner' },
-  { _id: '4', name: 'Tech Lab Alpha', description: 'Equipped with high-speed internet and multiple power outlets. Great for coding sessions, hackathons, or any tech-heavy work that needs reliable connectivity.', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&auto=format&fit=crop', floor: 'Floor 1', capacity: '2–4', hourlyRate: 7, amenities: ['Wi-Fi', 'Power Outlets', 'Air Conditioning', 'Whiteboard'], bookingCount: 21, ownerId: 'other-owner' },
-  { _id: '5', name: 'Open Study Lounge', description: 'A bright and airy open-plan room with natural light and a relaxed vibe. Perfect for casual study sessions or light collaborative work.', image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&auto=format&fit=crop', floor: 'Floor 2', capacity: '3–5', hourlyRate: 6, amenities: ['Wi-Fi', 'Power Outlets'], bookingCount: 5, ownerId: 'other-owner' },
-  { _id: '6', name: 'Executive Suite B', description: 'Premium private room with ergonomic furniture, a wall-mounted screen, and a projector. Ideal for important presentations and focused professional work.', image: 'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=800&auto=format&fit=crop', floor: 'Floor 4', capacity: '2–3', hourlyRate: 10, amenities: ['Projector', 'Air Conditioning', 'Wi-Fi', 'Quiet Zone', 'Power Outlets'], bookingCount: 17, ownerId: 'other-owner' },
-  { _id: '7', name: 'Seminar Room 101', description: 'A large seminar-style room with tiered seating and a full projection setup. Built for lectures, workshops, and large group discussions.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&auto=format&fit=crop', floor: 'Floor 3', capacity: '6–10', hourlyRate: 12, amenities: ['Projector', 'Whiteboard', 'Air Conditioning', 'Wi-Fi'], bookingCount: 9, ownerId: 'other-owner' },
-  { _id: '8', name: 'Corner Nook', description: 'A compact quiet spot ideal for solo exam preparation or a short focused sprint. Minimalist design with just what you need and nothing you don\'t.', image: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?w=800&auto=format&fit=crop', floor: 'Floor 1', capacity: '1', hourlyRate: 3, amenities: ['Quiet Zone', 'Power Outlets'], bookingCount: 3, ownerId: 'other-owner' },
-  { _id: '9', name: 'Boardroom Pro', description: 'Professional boardroom layout with full AV setup and leather seating. Best for group presentations, mock interviews, and formal study sessions.', image: 'https://images.unsplash.com/photo-1577412647305-991150c7d163?w=800&auto=format&fit=crop', floor: 'Floor 5', capacity: '6–8', hourlyRate: 15, amenities: ['Projector', 'Whiteboard', 'Air Conditioning', 'Wi-Fi', 'Power Outlets'], bookingCount: 27, ownerId: 'other-owner' },
-]
 
 const AMENITIES_ALL = ['Whiteboard', 'Projector', 'Wi-Fi', 'Power Outlets', 'Quiet Zone', 'Air Conditioning']
 
@@ -27,14 +16,35 @@ export default function RoomDetailClient({ id }) {
   const user = session?.user
 
   const [bookingOpen, setBookingOpen] = useState(false)
-  const [editOpen,    setEditOpen]    = useState(false)
-  const [deleteOpen,  setDeleteOpen]  = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  const room = ROOMS.find(r => r._id === id)
+  const [room, setRoom] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // rooms 1 & 2 are owned by demo-owner 
-  const isOwner = false 
+  useEffect(() => {
+    api.getRoom(id)
+    .then(data => setRoom(data.room || data)) 
+    .catch(() => { })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) return (
+    <div className="min-h-screen bg-base-100 flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  const isOwner = !!(user && room && user.id === room.ownerId)
+  if (!room) {
+    return (
+      <div className="min-h-screen bg-base-100 ...">
+        ...
+      </div>
+    )
+  }
+
 
   if (!room) {
     return (
@@ -120,9 +130,9 @@ export default function RoomDetailClient({ id }) {
             {/* Details grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
               {[
-                { icon: <PeopleIcon />, label: 'Capacity',    value: `${room.capacity} people` },
-                { icon: <RateIcon />,   label: 'Hourly Rate', value: `$${room.hourlyRate}/hr` },
-                { icon: <FloorIcon />,  label: 'Location',    value: room.floor },
+                { icon: <PeopleIcon />, label: 'Capacity', value: `${room.capacity} people` },
+                { icon: <RateIcon />, label: 'Hourly Rate', value: `$${room.hourlyRate}/hr` },
+                { icon: <FloorIcon />, label: 'Location', value: room.floor },
               ].map(({ icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3 p-4 rounded-xl bg-base-200 border border-base-300">
                   <span className="text-primary mt-0.5">{icon}</span>
@@ -142,11 +152,10 @@ export default function RoomDetailClient({ id }) {
                   const has = room.amenities.includes(a)
                   return (
                     <div key={a}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm border transition-all ${
-                        has
-                          ? 'bg-primary/10 border-primary/25 text-primary'
-                          : 'bg-base-200 border-base-300 text-base-content/35'
-                      }`}>
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm border transition-all ${has
+                        ? 'bg-primary/10 border-primary/25 text-primary'
+                        : 'bg-base-200 border-base-300 text-base-content/35'
+                        }`}>
                       {has ? <CheckIcon /> : <XIcon />}
                       {a}
                     </div>
@@ -307,10 +316,10 @@ function EditRoomModal({ room, onClose }) {
 
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto">
           {[
-            { label: 'Room Name',   field: 'name',        type: 'text' },
-            { label: 'Image URL',   field: 'image',       type: 'text' },
-            { label: 'Floor',       field: 'floor',       type: 'text' },
-            { label: 'Capacity',    field: 'capacity',    type: 'text' },
+            { label: 'Room Name', field: 'name', type: 'text' },
+            { label: 'Image URL', field: 'image', type: 'text' },
+            { label: 'Floor', field: 'floor', type: 'text' },
+            { label: 'Capacity', field: 'capacity', type: 'text' },
             { label: 'Hourly Rate ($)', field: 'hourlyRate', type: 'number' },
           ].map(({ label, field, type }) => (
             <div key={field} className="flex flex-col gap-1.5">
@@ -335,9 +344,8 @@ function EditRoomModal({ room, onClose }) {
             <div className="flex flex-wrap gap-2">
               {AMENITIES_ALL.map((a) => (
                 <button key={a} type="button" onClick={() => toggleAmenity(a)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                    form.amenities.includes(a) ? 'bg-primary text-dark border-primary' : 'bg-base-200 text-base-content/65 border-base-300'
-                  }`}>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${form.amenities.includes(a) ? 'bg-primary text-dark border-primary' : 'bg-base-200 text-base-content/65 border-base-300'
+                    }`}>
                   {a}
                 </button>
               ))}

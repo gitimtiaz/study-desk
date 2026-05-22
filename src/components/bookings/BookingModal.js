@@ -1,5 +1,6 @@
 'use client'
 
+import { api } from '@/lib/api'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -12,12 +13,12 @@ const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => {
 const today = new Date().toISOString().split('T')[0]
 
 export default function BookingModal({ room, onClose }) {
-  const [date,      setDate]      = useState('')
+  const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
-  const [endTime,   setEndTime]   = useState('')
-  const [note,      setNote]      = useState('')
-  const [errors,    setErrors]    = useState({})
-  const [loading,   setLoading]   = useState(false)
+  const [endTime, setEndTime] = useState('')
+  const [note, setNote] = useState('')
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
 
   // Reset end time if it becomes invalid after start changes
   useEffect(() => {
@@ -39,9 +40,9 @@ export default function BookingModal({ room, onClose }) {
 
   const validate = () => {
     const e = {}
-    if (!date)      e.date      = 'Please select a date'
+    if (!date) e.date = 'Please select a date'
     if (!startTime) e.startTime = 'Select a start time'
-    if (!endTime)   e.endTime   = 'Select an end time'
+    if (!endTime) e.endTime = 'Select an end time'
     return e
   }
 
@@ -51,11 +52,23 @@ export default function BookingModal({ room, onClose }) {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setErrors({})
     setLoading(true)
-    // TODO: wire to real API in Commit 18
-    await new Promise(r => setTimeout(r, 800))
-    setLoading(false)
-    toast.success('Room booked successfully!')
-    onClose()
+
+    try {
+      await api.createBooking({
+        roomId: room._id,
+        date,
+        startTime,
+        endTime,
+        totalCost,
+        note,
+      })
+      toast.success('Room booked successfully!')
+      onClose()
+    } catch (err) {
+      toast.error(err.message || 'Booking failed. Slot may already be taken.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

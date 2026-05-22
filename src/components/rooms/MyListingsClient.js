@@ -1,5 +1,6 @@
 'use client'
 
+import { api } from '@/lib/api'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -9,21 +10,16 @@ import { useSession } from '@/lib/auth-client'
 
 const AMENITIES_ALL = ['Whiteboard', 'Projector', 'Wi-Fi', 'Power Outlets', 'Quiet Zone', 'Air Conditioning']
 
-// Mock data
-const MOCK_LISTINGS = [
-  { _id: '1', name: 'Silent Focus Pod', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=300&auto=format&fit=crop', floor: 'Floor 1', capacity: '1–2', hourlyRate: 4, amenities: ['Wi-Fi', 'Quiet Zone', 'Power Outlets'], bookingCount: 12, description: 'A fully enclosed single-user pod designed for deep work.' },
-  { _id: '2', name: 'Collaboration Hub', image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&auto=format&fit=crop', floor: 'Floor 2', capacity: '4–6', hourlyRate: 8, amenities: ['Projector', 'Whiteboard', 'Wi-Fi', 'Air Conditioning'], bookingCount: 34, description: 'Spacious room with a large whiteboard and projector.' },
-]
-
 export default function MyListingsClient() {
   const { data: session, isPending } = useSession()
-  const user   = session?.user
+  const user = session?.user
   const router = useRouter()
 
-  const [listings,  setListings]  = useState(MOCK_LISTINGS)
-  const [editRoom,  setEditRoom]  = useState(null)
+  const [listings, setListings] = useState([])
+  const [editRoom, setEditRoom] = useState(null)
   const [deleteRoom, setDeleteRoom] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => { document.title = 'StudyDesk – My Listings' }, [])
 
@@ -31,10 +27,36 @@ export default function MyListingsClient() {
     if (!isPending && !user) router.replace('/login')
   }, [isPending, user, router])
 
+  // useEffect(() => {
+  //   if (!user) return
+  //   api.getMyListings()
+  //     .then(data => setListings(data.room || data))
+  //     .catch(() => toast.error('Failed to load listings'))
+  //     .finally(() => setLoading(false))
+  // }, [user])
+
+  useEffect(() => {
+    if (!user) return
+
+    api.getMyListings()
+      .then(data => {
+        setListings(
+          Array.isArray(data)
+          ? data
+          : data.rooms || []
+        )
+      })
+      .catch(() => {
+        setListings([])
+        toast.error('Failed to load listings')
+      })
+      .finally(() => setLoading(false))
+  }, [user])
+
   const handleDelete = async () => {
     setDeleteLoading(true)
-    
-    await new Promise(r => setTimeout(r, 700))
+
+    await api.deleteRoom(deleteRoom._id)
     setListings(p => p.filter(r => r._id !== deleteRoom._id))
     setDeleteLoading(false)
     setDeleteRoom(null)
@@ -42,14 +64,14 @@ export default function MyListingsClient() {
   }
 
   const handleEditSave = async (updated) => {
-   
-    await new Promise(r => setTimeout(r, 800))
+
+    await api.updateRoom(updated._id, updated)
     setListings(p => p.map(r => r._id === updated._id ? { ...r, ...updated } : r))
     toast.success('Room updated successfully')
     setEditRoom(null)
   }
 
-  if (isPending) return <PageSkeleton />
+  if (isPending || loading) return <PageSkeleton />
 
   return (
     <div className="min-h-screen bg-base-100">
@@ -234,9 +256,9 @@ function EditRoomModal({ room, onClose, onSave }) {
     name: room.name, description: room.description,
     image: room.image || '', floor: room.floor,
     capacity: room.capacity, hourlyRate: room.hourlyRate,
-    amenities: [...room.amenities],
+    amenities: [...(room.amenities || [])],
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
@@ -247,7 +269,7 @@ function EditRoomModal({ room, onClose, onSave }) {
   const toggleAmenity = (a) =>
     setForm(p => ({
       ...p,
-      amenities: p.amenities.includes(a)
+      amenities: (p.amenities || []).includes(a)
         ? p.amenities.filter(x => x !== a)
         : [...p.amenities, a],
     }))
@@ -280,10 +302,10 @@ function EditRoomModal({ room, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 overflow-y-auto">
           {[
-            { label: 'Room Name',       field: 'name',       type: 'text'   },
-            { label: 'Image URL',       field: 'image',      type: 'text'   },
-            { label: 'Floor',           field: 'floor',      type: 'text'   },
-            { label: 'Capacity',        field: 'capacity',   type: 'text'   },
+            { label: 'Room Name', field: 'name', type: 'text' },
+            { label: 'Image URL', field: 'image', type: 'text' },
+            { label: 'Floor', field: 'floor', type: 'text' },
+            { label: 'Capacity', field: 'capacity', type: 'text' },
             { label: 'Hourly Rate ($)', field: 'hourlyRate', type: 'number' },
           ].map(({ label, field, type }) => (
             <div key={field} className="flex flex-col gap-1.5">
@@ -308,11 +330,10 @@ function EditRoomModal({ room, onClose, onSave }) {
             <div className="flex flex-wrap gap-2">
               {AMENITIES_ALL.map((a) => (
                 <button key={a} type="button" onClick={() => toggleAmenity(a)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                    form.amenities.includes(a)
-                      ? 'bg-primary text-dark border-primary'
-                      : 'bg-base-200 text-base-content/65 border-base-300 hover:border-primary/40'
-                  }`}>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${((form.amenities || []).includes(a))
+                    ? 'bg-primary text-dark border-primary'
+                    : 'bg-base-200 text-base-content/65 border-base-300 hover:border-primary/40'
+                    }`}>
                   {a}
                 </button>
               ))}
