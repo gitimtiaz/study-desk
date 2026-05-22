@@ -22,7 +22,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="bg-cream dark:bg-dark border-t border-primary/30">
+    <footer className="bg-base-200 border-t border-primary/30">
 
       {/* Main grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -90,7 +90,12 @@ export default function Footer() {
             <div className="flex items-center gap-2.5 flex-wrap">
               {socialLinks.map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-dark/50 dark:text-cream/60 border border-primary/15 hover:bg-primary hover:text-dark hover:-translate-y-0.5 transition-all duration-200">
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-dark/50 dark:text-cream/60 border border-primary/15
+                  
+                  hover:bg-primary 
+                  hover:text-dark 
+                  dark:hover:text-cream
+                  hover:-translate-y-0.5 transition-all duration-200">
                   {s.icon}
                 </a>
               ))}

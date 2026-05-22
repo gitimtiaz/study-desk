@@ -22,10 +22,10 @@ const stats = [
 
 export default function HeroBanner() {
   return (
-    <section className="bg-cream dark:bg-dark min-h-[calc(100vh-64px)] transition-colors duration-300 flex items-center relative overflow-hidden">
+    <section className="bg-base-200 dark:bg-dark min-h-[calc(100vh-64px)] transition-colors duration-300 flex items-center relative overflow-hidden">
 
       {/* Dot-grid overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-70 dark:opacity-100"
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-85 dark:opacity-100"
         style={{ backgroundImage: 'radial-gradient(circle, rgba(123,50,5,0.33) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
       {/* Ambient glow */}
